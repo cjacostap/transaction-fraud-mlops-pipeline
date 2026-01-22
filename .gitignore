@@ -205,3 +205,34 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# Data files - don't commit datasets
+data/
+data/*
+data/**/*
+!data/.gitkeep
+
+# macOS
+.DS_Store
+**/.DS_Store
+*.DS_Store
+
+# Model outputs and artifacts
+notebooks/outputs/
+*.pkl
+*.h5
+*.keras
+*.weights.h5
+*.parquet
+*.csv
+!requirements.txt
+!*.md
+
+# Logs
+*.log
+logs/
+*.tfevents.*
+
+# Jupyter outputs
+notebooks/outputs/
+.ipynb_checkpoints/
