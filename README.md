@@ -1,87 +1,126 @@
-# Mentorship Program: MLOps Transition
-*Transitioning from Economics/Quant to Production Machine Learning Engineering*
+# Transaction Fraud Detection — MLOps Pipeline
 
-## 🎯 Objective
-This repository tracks the mentorship journey to transition an **Economist/Quantitative Analyst** into an **MLOps Engineer**. The goal is to move from "Notebook-based" development to "Production-grade" pipelines.
+Pipeline de ML para **detección de fraude en transacciones** con enfoque MLOps: experimentación trazada con MLflow, versionado de datos con DVC, configuración por YAML, y artefactos listos para registro y despliegue.
 
-We use a practical **Deep Learning for Fraud Detection** use case to master these skills.
+## Objetivo
 
-## 📚 Repository Structure
+Entrenar y evaluar un modelo de red neuronal (TensorFlow/Keras) que clasifica transacciones como legítimas o fraudulentas, con:
+
+- **Reproducibilidad**: configuración en YAML, semilla fija, DVC para datos.
+- **Trazabilidad**: MLflow para experimentos, parámetros, métricas y registro de modelos.
+- **Flexibilidad**: CLI con muchos overrides, Optuna para tuning, SMOTE/collinearity como opciones.
+
+## Estructura del repositorio
+
 ```text
 .
-├── fraud-detection-mlops/      # 🛡️ MAIN PROJECT WORKSPACE (Target Architecture)
-├── sessions/                   # Practical guides for each mentorship session
-├── proposal/                   # Mentorship curriculum and PDF docs
-├── environment.yml             # Conda environment definition
-└── README.md                   # This roadmap
+├── src/
+│   ├── main.py              # Entrada principal: pipeline de entrenamiento
+│   ├── data.py              # Carga y preparación del dataset
+│   ├── model.py             # Arquitectura, entrenamiento, Optuna, guardado de artefactos
+│   ├── validation.py        # Evaluación (métricas, curvas, umbral óptimo)
+│   ├── predict.py           # Inferencia (batch y single) para uso en API/batch
+│   ├── mlflow_integration.py # Logging a MLflow (params, métricas, artefactos, tags)
+│   └── mlflow_pyfunc_wrapper.py # Wrapper PyFunc para registrar modelo + pipeline en MLflow
+├── configs/
+│   └── default.yaml        # Configuración por defecto (datos, modelo, MLflow, registry)
+├── data/
+│   └── raw/
+│       └── onlinefraud.csv  # Dataset (versionado con DVC)
+├── outputs/                 # Salidas locales (modelos, reportes, figuras)
+│   ├── models/
+│   ├── reports/
+│   └── figures/
+├── infra/
+│   ├── docker-compose.yaml  # MLflow + PostgreSQL + MinIO
+│   └── Dockerfile.mlflow    # Imagen del servidor MLflow
+├── notebooks/
+│   └── eda.ipynb            # Análisis exploratorio
+├── docs/
+│   ├── cli_examples.md      # Ejemplos de uso del CLI
+│   └── refactor_plan.md     # Documentación de arquitectura
+├── requirements.txt
+└── README.md
 ```
 
----
+## Requisitos
 
-## 🚀 Mentorship Roadmap
+- Python 3.10+
+- Opcional: Docker y Docker Compose para MLflow + MinIO + PostgreSQL
 
-### ✅ Phase 1: MLOps Fundamentals (Sessions 1-3 Completed)
-In the first three sessions, we covered the conceptual backbone of Modern MLOps.
+## Instalación
 
-*   **Session 1: The MLOps Landscape**
-    *   **What is MLOps?**: Bringing DevOps discipline to Machine Learning.
-    *   **Roles Defined**: Differences between *ML Engineer* (Deployment/Scale), *Data Engineer* (Pipelines), *Data Scientist* (Modeling), and *DevOps* (Infra).
-    *   **The Lifecycle**: Design -> Data -> Modeling -> Deployment -> Monitoring.
-*   **Session 2: Infrastructure as Code & Data as Code**
-    *   **IaC**: Treating server configuration as Git-versioned code (Terraform/Ansible logic).
-    *   **Data as Code**: Why storing CSVs in Git is bad, and the need for DVC.
-*   **Session 3: Containers & Orchestration**
-    *   **Docker**: The unit of deployment. "It runs on my machine" solver.
-    *   **Kubernetes (K8s)**: How to manage valid containers at scale.
+```bash
+git clone <url-del-repositorio>
+cd transaction-fraud-mlops-pipeline
+pip install -r requirements.txt
+```
 
-### 🚧 Phase 2: Building the Production Pipeline (Sessions 4-7)
-We are now moving to **Hands-on Implementation**. We will build the `fraud-detection-mlops` project from scratch.
+## Uso rápido
 
-#### Session 4: The Foundation - Reproducibility & Tracking
-*   **Goal**: Tracking Data (DVC) and Experiments (MLflow).
-*   **Activities**:
-    *   Initialize `fraud-detection-mlops` structure.
-    *   Track `raw/onlinefraud.csv` with DVC.
-    *   Add `mlflow.autolog()` to the experiments.
-*   **➡️ Homework**: Setup local stack (MLflow+MinIO) and run fully tracked experiments.
+### Entrenar con la configuración por defecto
 
-#### Session 5: Modularization & Containerization
-*   **Goal**: Refactoring Notebooks into Production Scripts.
-*   **Activities**:
-    *   Split notebook into `src/preprocess.py` and `src/train.py`.
-    *   Create `Dockerfile` for training jobs.
-*   **➡️ Homework**: Run training *inside* a container and confirm it logs to MLflow.
+```bash
+python -m src.main
+```
 
-#### Session 6: Pipeline Orchestration & Registry
-*   **Goal**: Automating the workflow with Kubeflow Pipelines (KFP).
-*   **Activities**:
-    *   Define a DAG connecting Preprocessing -> Training.
-    *   Register the best model to MLflow Model Registry.
-*   **➡️ Homework**: Compile the pipeline and implement conditional registration.
+- Carga `configs/default.yaml`
+- Lee datos desde `data/raw/onlinefraud.csv` (o el path configurado)
+- Entrena el modelo, evalúa en test y guarda artefactos en `outputs/`
+- Si `model_registry.enabled` está en `true`, registra el modelo en MLflow Model Registry (PyFunc: modelo + pipeline de preprocesamiento)
 
-#### Session 7: Serving & Feedback Loop
-*   **Goal**: Exposing the model via API.
-*   **Activities**:
-    *   Build a `FastAPI` serving app.
-    *   Load models from MLflow Registry.
-*   **➡️ Homework**: Deploy API + DB logging for predictions.
+### Infraestructura MLflow (opcional)
 
----
+Para usar MLflow con backend en PostgreSQL y artefactos en MinIO:
 
-## 📝 Getting Started
+```bash
+cd infra
+cp .env.example .env   # Ajustar variables si es necesario
+docker compose up -d
+```
 
-1.  **Clone & Checkout**:
-    ```bash
-    git clone <repo-url>
-    cd cristhian-mlops-transition
-    git checkout feature/mentorship-guide
-    ```
+Luego apuntar el cliente a `http://localhost:5001` (en `configs/default.yaml`: `mlflow.tracking_uri`).
 
-2.  **Environment Setup**:
-    ```bash
-    conda env create -f environment.yml
-    conda activate mlops_transition
-    ```
+### Ejemplos de CLI
 
-3.  **Start Learning**:
-    Go to `sessions/session_04_tracking.md` to begin the next session.
+- Otro archivo de datos: `python -m src.main --data-path ruta/a/datos.csv`
+- Más épocas: `python -m src.main --epochs 80`
+- Activar Optuna: `python -m src.main --use-optuna`
+- SMOTE: `python -m src.main --use-smote --smote-sampling-strategy 0.3`
+- Eliminar features muy correlacionadas: `python -m src.main --drop-collinear --corr-threshold 0.95`
+- Omitir evaluación (prueba rápida): `python -m src.main --skip-evaluation`
+
+Más ejemplos en `docs/cli_examples.md`.
+
+## Qué incluye el pipeline
+
+- **Datos**: preparación desde CSV, splits train/val/test estratificados, opción de eliminar features por correlación.
+- **Desbalance**: SMOTE y/o class weights configurables.
+- **Modelo**: red neuronal (capas ocultas, dropout, L2, early stopping, ReduceLROnPlateau).
+- **Tuning**: Optuna opcional (coarse + fine, métrica configurable, ej. AUC-PR).
+- **Evaluación**: precisión, recall, F1, AUC-ROC, AUC-PR, matriz de confusión, umbral óptimo, curvas y figuras.
+- **MLflow**: parámetros, métricas, tags (p. ej. `data_hash` si usas DVC), estadísticas de datos, registro del modelo como PyFunc (modelo + pipeline) con nombre y descripción.
+- **Artefactos locales**: modelo Keras, pipeline de preprocesamiento (pickle), nombres de features, config de entrenamiento, reportes y gráficos.
+
+## Inferencia
+
+El módulo `src.predict` permite usar el modelo y el pipeline guardados para predicciones (batch o una transacción), listo para integrar en una API (p. ej. FastAPI) o jobs por lotes:
+
+```python
+from src.model import load_artifacts
+from src.predict import predict
+
+model, pipeline, feature_names, config = load_artifacts("outputs/models")
+results = predict(model, pipeline, X_new, threshold=0.5)
+# results["predictions"], results["probabilities"], results["risk_levels"]
+```
+
+## Documentación adicional
+
+- `docs/cli_examples.md` — Ejemplos detallados del CLI y configs.
+- `docs/refactor_plan.md` — Arquitectura y plan de refactor.
+- `configs/default.yaml` — Todas las opciones disponibles.
+
+## Licencia
+
+Ver `LICENSE` en el repositorio.
