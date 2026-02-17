@@ -254,3 +254,5 @@ docker-compose.override.yml
 
 *.prof
 *.lprof
+
+docs/

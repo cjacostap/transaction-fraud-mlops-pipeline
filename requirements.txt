@@ -10,7 +10,7 @@ optuna==3.6.1
 joblib==1.4.2
 
 # Data IO
-pyarrow==17.0.0
+pyarrow==15.0.2s
 fastparquet==2024.5.0
 
 # Visualization

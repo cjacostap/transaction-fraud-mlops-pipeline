@@ -10,6 +10,12 @@ Train and evaluate a neural network (TensorFlow/Keras) that classifies transacti
 - **Traceability**: MLflow for experiments, parameters, metrics, and model registry.
 - **Flexibility**: CLI with many overrides, Optuna for tuning, SMOTE/collinearity options.
 
+## Data
+
+This project uses the **Kaggle Credit Card Fraud Dataset**  
+https://www.kaggle.com/datasets/mlg-ulb/creditcardfraud
+
+
 ## Repository structure
 
 ```text
