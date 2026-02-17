@@ -1,110 +1,110 @@
 # Transaction Fraud Detection — MLOps Pipeline
 
-Pipeline de ML para **detección de fraude en transacciones** con enfoque MLOps: experimentación trazada con MLflow, versionado de datos con DVC, configuración por YAML, y artefactos listos para registro y despliegue.
+ML pipeline for **transaction fraud detection** with an MLOps focus: experiment tracking with MLflow, data versioning with DVC, YAML-based configuration, and artifacts ready for registry and deployment.
 
-## Objetivo
+## Objective
 
-Entrenar y evaluar un modelo de red neuronal (TensorFlow/Keras) que clasifica transacciones como legítimas o fraudulentas, con:
+Train and evaluate a neural network (TensorFlow/Keras) that classifies transactions as legitimate or fraudulent, with:
 
-- **Reproducibilidad**: configuración en YAML, semilla fija, DVC para datos.
-- **Trazabilidad**: MLflow para experimentos, parámetros, métricas y registro de modelos.
-- **Flexibilidad**: CLI con muchos overrides, Optuna para tuning, SMOTE/collinearity como opciones.
+- **Reproducibility**: YAML config, fixed seed, DVC for data.
+- **Traceability**: MLflow for experiments, parameters, metrics, and model registry.
+- **Flexibility**: CLI with many overrides, Optuna for tuning, SMOTE/collinearity options.
 
-## Estructura del repositorio
+## Repository structure
 
 ```text
 .
 ├── src/
-│   ├── main.py              # Entrada principal: pipeline de entrenamiento
-│   ├── data.py              # Carga y preparación del dataset
-│   ├── model.py             # Arquitectura, entrenamiento, Optuna, guardado de artefactos
-│   ├── validation.py        # Evaluación (métricas, curvas, umbral óptimo)
-│   ├── predict.py           # Inferencia (batch y single) para uso en API/batch
-│   ├── mlflow_integration.py # Logging a MLflow (params, métricas, artefactos, tags)
-│   └── mlflow_pyfunc_wrapper.py # Wrapper PyFunc para registrar modelo + pipeline en MLflow
+│   ├── main.py              # Main entry: training pipeline
+│   ├── data.py              # Dataset loading and preparation
+│   ├── model.py             # Architecture, training, Optuna, artifact saving
+│   ├── validation.py        # Evaluation (metrics, curves, optimal threshold)
+│   ├── predict.py           # Inference (batch and single) for API/batch use
+│   ├── mlflow_integration.py # MLflow logging (params, metrics, artifacts, tags)
+│   └── mlflow_pyfunc_wrapper.py # PyFunc wrapper to register model + pipeline in MLflow
 ├── configs/
-│   └── default.yaml        # Configuración por defecto (datos, modelo, MLflow, registry)
+│   └── default.yaml        # Default config (data, model, MLflow, registry)
 ├── data/
 │   └── raw/
-│       └── onlinefraud.csv  # Dataset (versionado con DVC)
-├── outputs/                 # Salidas locales (modelos, reportes, figuras)
+│       └── onlinefraud.csv  # Dataset (versioned with DVC)
+├── outputs/                 # Local outputs (models, reports, figures)
 │   ├── models/
 │   ├── reports/
 │   └── figures/
 ├── infra/
 │   ├── docker-compose.yaml  # MLflow + PostgreSQL + MinIO
-│   └── Dockerfile.mlflow    # Imagen del servidor MLflow
+│   └── Dockerfile.mlflow    # MLflow server image
 ├── notebooks/
-│   └── eda.ipynb            # Análisis exploratorio
+│   └── eda.ipynb            # Exploratory analysis
 ├── docs/
-│   ├── cli_examples.md      # Ejemplos de uso del CLI
-│   └── refactor_plan.md     # Documentación de arquitectura
+│   ├── cli_examples.md      # CLI usage examples
+│   └── refactor_plan.md     # Architecture documentation
 ├── requirements.txt
 └── README.md
 ```
 
-## Requisitos
+## Requirements
 
 - Python 3.10+
-- Opcional: Docker y Docker Compose para MLflow + MinIO + PostgreSQL
+- Optional: Docker and Docker Compose for MLflow + MinIO + PostgreSQL
 
-## Instalación
+## Installation
 
 ```bash
-git clone <url-del-repositorio>
+git clone <repo-url>
 cd transaction-fraud-mlops-pipeline
 pip install -r requirements.txt
 ```
 
-## Uso rápido
+## Quick start
 
-### Entrenar con la configuración por defecto
+### Train with default configuration
 
 ```bash
 python -m src.main
 ```
 
-- Carga `configs/default.yaml`
-- Lee datos desde `data/raw/onlinefraud.csv` (o el path configurado)
-- Entrena el modelo, evalúa en test y guarda artefactos en `outputs/`
-- Si `model_registry.enabled` está en `true`, registra el modelo en MLflow Model Registry (PyFunc: modelo + pipeline de preprocesamiento)
+- Loads `configs/default.yaml`
+- Reads data from `data/raw/onlinefraud.csv` (or the configured path)
+- Trains the model, evaluates on the test set, and saves artifacts to `outputs/`
+- If `model_registry.enabled` is `true`, registers the model in MLflow Model Registry (PyFunc: model + preprocessing pipeline)
 
-### Infraestructura MLflow (opcional)
+### MLflow infrastructure (optional)
 
-Para usar MLflow con backend en PostgreSQL y artefactos en MinIO:
+To use MLflow with a PostgreSQL backend and MinIO for artifacts:
 
 ```bash
 cd infra
-cp .env.example .env   # Ajustar variables si es necesario
+cp .env.example .env   # Adjust variables if needed
 docker compose up -d
 ```
 
-Luego apuntar el cliente a `http://localhost:5001` (en `configs/default.yaml`: `mlflow.tracking_uri`).
+Then point the client to `http://localhost:5001` (in `configs/default.yaml`: `mlflow.tracking_uri`).
 
-### Ejemplos de CLI
+### CLI examples
 
-- Otro archivo de datos: `python -m src.main --data-path ruta/a/datos.csv`
-- Más épocas: `python -m src.main --epochs 80`
-- Activar Optuna: `python -m src.main --use-optuna`
+- Different data file: `python -m src.main --data-path path/to/data.csv`
+- More epochs: `python -m src.main --epochs 80`
+- Enable Optuna: `python -m src.main --use-optuna`
 - SMOTE: `python -m src.main --use-smote --smote-sampling-strategy 0.3`
-- Eliminar features muy correlacionadas: `python -m src.main --drop-collinear --corr-threshold 0.95`
-- Omitir evaluación (prueba rápida): `python -m src.main --skip-evaluation`
+- Drop highly correlated features: `python -m src.main --drop-collinear --corr-threshold 0.95`
+- Skip evaluation (quick smoke test): `python -m src.main --skip-evaluation`
 
-Más ejemplos en `docs/cli_examples.md`.
+More examples in `docs/cli_examples.md`.
 
-## Qué incluye el pipeline
+## What the pipeline includes
 
-- **Datos**: preparación desde CSV, splits train/val/test estratificados, opción de eliminar features por correlación.
-- **Desbalance**: SMOTE y/o class weights configurables.
-- **Modelo**: red neuronal (capas ocultas, dropout, L2, early stopping, ReduceLROnPlateau).
-- **Tuning**: Optuna opcional (coarse + fine, métrica configurable, ej. AUC-PR).
-- **Evaluación**: precisión, recall, F1, AUC-ROC, AUC-PR, matriz de confusión, umbral óptimo, curvas y figuras.
-- **MLflow**: parámetros, métricas, tags (p. ej. `data_hash` si usas DVC), estadísticas de datos, registro del modelo como PyFunc (modelo + pipeline) con nombre y descripción.
-- **Artefactos locales**: modelo Keras, pipeline de preprocesamiento (pickle), nombres de features, config de entrenamiento, reportes y gráficos.
+- **Data**: CSV loading, stratified train/val/test splits, optional drop of features by correlation.
+- **Imbalance**: Configurable SMOTE and/or class weights.
+- **Model**: Neural network (hidden layers, dropout, L2, early stopping, ReduceLROnPlateau).
+- **Tuning**: Optional Optuna (coarse + fine, configurable metric, e.g. AUC-PR).
+- **Evaluation**: Precision, recall, F1, AUC-ROC, AUC-PR, confusion matrix, optimal threshold, curves and figures.
+- **MLflow**: Parameters, metrics, tags (e.g. `data_hash` when using DVC), data statistics, model registration as PyFunc (model + pipeline) with name and description.
+- **Local artifacts**: Keras model, preprocessing pipeline (pickle), feature names, training config, reports and plots.
 
-## Inferencia
+## Inference
 
-El módulo `src.predict` permite usar el modelo y el pipeline guardados para predicciones (batch o una transacción), listo para integrar en una API (p. ej. FastAPI) o jobs por lotes:
+The `src.predict` module uses the saved model and pipeline for predictions (batch or single transaction), ready to plug into an API (e.g. FastAPI) or batch jobs:
 
 ```python
 from src.model import load_artifacts
@@ -115,12 +115,12 @@ results = predict(model, pipeline, X_new, threshold=0.5)
 # results["predictions"], results["probabilities"], results["risk_levels"]
 ```
 
-## Documentación adicional
+## Further documentation
 
-- `docs/cli_examples.md` — Ejemplos detallados del CLI y configs.
-- `docs/refactor_plan.md` — Arquitectura y plan de refactor.
-- `configs/default.yaml` — Todas las opciones disponibles.
+- `docs/cli_examples.md` — Detailed CLI and config examples.
+- `docs/refactor_plan.md` — Architecture and refactor plan.
+- `configs/default.yaml` — All available options.
 
-## Licencia
+## License
 
-Ver `LICENSE` en el repositorio.
+See `LICENSE` in the repository.
