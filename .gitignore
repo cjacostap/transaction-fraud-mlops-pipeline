@@ -236,3 +236,21 @@ logs/
 # Jupyter outputs
 notebooks/outputs/
 .ipynb_checkpoints/
+
+
+# MLflow
+mlflow.db
+mlruns/
+artifacts/
+
+# Pipeline outputs
+outputs/
+sessions/
+predictions/
+
+
+# Docker / Infra local
+docker-compose.override.yml
+
+*.prof
+*.lprof

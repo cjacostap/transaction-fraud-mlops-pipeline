@@ -1,0 +1,61 @@
+#version: '3.8'
+
+services:
+  # MinIO: S3-compatible object storage for DVC and MLflow artifacts
+  minio:
+    image: minio/minio:latest
+    container_name: mlops-minio
+    ports:
+      - "9000:9000" # API
+      - "9001:9001" # Console
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+    volumes:
+      - ./infra_data/minio:/data
+    networks:
+      - mlops-net
+
+  # PostgreSQL: Backend store for MLflow experiments/parameters
+  db:
+    image: postgres:15
+    container_name: mlops-postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./infra_data/postgres:/var/lib/postgresql/data
+    networks:
+      - mlops-net
+
+  # MLflow: Tracking Server
+  mlflow:
+    build:
+      context: .
+      dockerfile: Dockerfile.mlflow
+    container_name: mlops-mlflow
+    ports:
+      - "5001:5000"
+    environment:
+      MLFLOW_BACKEND_STORE_URI: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+      MLFLOW_S3_ENDPOINT_URL: http://minio:9000
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+    command: >
+      mlflow server
+      --backend-store-uri postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+      --default-artifact-root s3://mlflow/
+      --host 0.0.0.0
+    depends_on:
+      - db
+      - minio
+    networks:
+      - mlops-net
+
+networks:
+  mlops-net:
+    driver: bridge

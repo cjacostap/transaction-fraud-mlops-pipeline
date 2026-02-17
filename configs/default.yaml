@@ -1,0 +1,49 @@
+data_path: data/raw/onlinefraud.csv
+output_root: outputs
+output_dir: outputs/models
+
+test_size: 0.2
+val_size: 0.15
+random_state: 42
+
+use_smote: true
+smote_sampling_strategy: 0.3
+use_class_weights: false
+
+drop_collinear: false
+corr_threshold: 0.95
+corr_sample_size: 200000
+corr_exclude: []
+
+hidden_layers: [256, 128, 64, 32]
+dropout_rate: 0.3
+l2_reg: 0.001
+activation: relu
+batch_size: 512
+epochs: 1
+learning_rate: 0.001
+patience_early_stop: 15
+patience_reduce_lr: 7
+scaler_type: standard
+
+use_optuna: false
+optuna_n_trials_coarse: 20
+optuna_n_trials_fine: 30
+optuna_epochs: 15
+optuna_patience: 5
+optuna_cv_folds: 1
+optuna_val_size: 0.15
+optuna_subsample: 500000
+optuna_direction: maximize
+optuna_metric: auc_pr
+
+
+# Integration with MLflow
+mlflow:
+  tracking_uri: "http://localhost:5001"  # Local host -> docker mlflow (5001:5000)
+  # Dentro de la red Docker: MLFLOW_TRACKING_URI=http://mlflow:5000
+  experiment_name: "fraud-detection-experiments"
+
+model_registry:
+  enabled: true
+  model_name: "fraud_detection_nn"
